@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Daniel Schnell"]
   s.email       = ["dschnell@grammatek.com"]
-  s.homepage    = "https://gitlab.com/grammatek/tts-ruby-gem"
+  s.homepage    = "https://github.com/grammatek/tts-ruby-gem"
   s.summary     = "A Ruby wrapper for the Grammatek ehf REST API"
   s.description = "This is the official Ruby Gem for Grammatek TTS API"
   s.license     = "MIT"
