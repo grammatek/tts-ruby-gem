@@ -24,19 +24,21 @@ require 'grammatek-tts/models/voice'
 # APIs
 require 'grammatek-tts/api/speech_api'
 
-module Grammatek::TTS
-  class << self
-    # Customize default settings for the SDK using block.
-    #   Grammatek::TTS.configure do |config|
-    #     config.username = "xxx"
-    #     config.password = "xxx"
-    #   end
-    # If no block given, return the default Configuration object.
-    def configure
-      if block_given?
-        yield(Configuration.default)
-      else
-        Configuration.default
+module Grammatek
+  module TTS
+    class << self
+      # Customize default settings for the SDK using block.
+      #   Grammatek::TTS.configure do |config|
+      #     config.username = "xxx"
+      #     config.password = "xxx"
+      #   end
+      # If no block given, return the default Configuration object.
+      def configure
+        if block_given?
+          yield(Configuration.default)
+        else
+          Configuration.default
+        end
       end
     end
   end
