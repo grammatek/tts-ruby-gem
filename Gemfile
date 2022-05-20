@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gemspec path: 'grammatek'
+gemspec
 
 group :development, :test do
   gem 'rake', '~> 13.0.1'

@@ -10,5 +10,5 @@ rvm:
 script:
   - bundle install --path vendor/bundle
   - bundle exec rspec
-  - gem build grammatek/tts.gemspec
-  - gem install ./grammatek/tts-0.1.gem
+  - gem build grammatek-tts.gemspec
+  - gem install ./grammatek-tts-0.1.gem

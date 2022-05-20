@@ -13,7 +13,7 @@
 ## Example
 
 ```ruby
-require 'grammatek/tts'
+require 'grammatek-tts'
 
 instance = Grammatek::TTS::Voice.new(
   gender: null,

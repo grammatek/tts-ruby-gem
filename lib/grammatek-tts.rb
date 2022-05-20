@@ -11,18 +11,18 @@ OpenAPI Generator version: 5.4.0
 =end
 
 # Common files
-require 'grammatek/tts/api_client'
-require 'grammatek/tts/api_error'
-require 'grammatek/tts/version'
-require 'grammatek/tts/configuration'
+require 'grammatek-tts/api_client'
+require 'grammatek-tts/api_error'
+require 'grammatek-tts/version'
+require 'grammatek-tts/configuration'
 
 # Models
-require 'grammatek/tts/models/error'
-require 'grammatek/tts/models/synthesize_speech_request'
-require 'grammatek/tts/models/voice'
+require 'grammatek-tts/models/error'
+require 'grammatek-tts/models/synthesize_speech_request'
+require 'grammatek-tts/models/voice'
 
 # APIs
-require 'grammatek/tts/api/speech_api'
+require 'grammatek-tts/api/speech_api'
 
 module Grammatek::TTS
   class << self

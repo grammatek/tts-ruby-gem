@@ -20,7 +20,7 @@ TTS - Synthesize speech from text
 
 ```ruby
 require 'time'
-require 'grammatek/tts'
+require 'grammatek-tts'
 
 api_instance = Grammatek::TTS::SpeechApi.new
 opts = {
@@ -86,7 +86,7 @@ Describe/query available voices
 
 ```ruby
 require 'time'
-require 'grammatek/tts'
+require 'grammatek-tts'
 
 api_instance = Grammatek::TTS::SpeechApi.new
 opts = {

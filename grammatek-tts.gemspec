@@ -12,8 +12,8 @@ OpenAPI Generator version: 5.4.0
 
 =end
 
-$:.unshift File.expand_path("../../lib", __FILE__)
-require "grammatek/tts/version"
+$:.push File.expand_path("../lib", __FILE__)
+require "grammatek-tts/version"
 
 Gem::Specification.new do |s|
   s.name        = "grammatek-tts"
@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Daniel Schnell"]
   s.email       = ["dschnell@grammatek.com"]
-  s.homepage    = "https://github.com/grammatek/tts-ruby-gem"
+  s.homepage    = "https://gitlab.com/grammatek/tts-ruby-gem"
   s.summary     = "A Ruby wrapper for the Grammatek ehf REST API"
   s.description = "This is the official Ruby Gem for Grammatek TTS API"
   s.license     = "MIT"

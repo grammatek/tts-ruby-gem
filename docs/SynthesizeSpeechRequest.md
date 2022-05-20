@@ -17,7 +17,7 @@
 ## Example
 
 ```ruby
-require 'grammatek/tts'
+require 'grammatek-tts'
 
 instance = Grammatek::TTS::SynthesizeSpeechRequest.new(
   engine: null,

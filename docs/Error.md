@@ -9,7 +9,7 @@
 ## Example
 
 ```ruby
-require 'grammatek/tts'
+require 'grammatek-tts'
 
 instance = Grammatek::TTS::Error.new(
   message: null
