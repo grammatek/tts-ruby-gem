@@ -1,0 +1,331 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "TTS API",
+    "description": "This API gives access to Grammatek ehf text to speech services.",
+    "version": "v0.1"
+  },
+  "servers": [
+    {
+      "url": "https://{environment}.grammatek.com/tts/v0",
+      "variables": {
+        "environment": {
+          "default": "api",
+          "enum": [
+            "api",
+            "api-test"
+          ]
+        }
+      }
+    }
+  ],
+  "tags": [
+    {
+      "name": "Speech",
+      "description": "Synthesize speech from text"
+    }
+  ],
+  "paths": {
+    "/speech": {
+      "post": {
+        "tags": [
+          "speech"
+        ],
+        "description": "TTS - Synthesize speech from text",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SynthesizeSpeechRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Audio or speech marks content",
+            "content": {
+              "audio/mpeg": {
+                "schema": {}
+              },
+              "audio/ogg": {
+                "schema": {}
+              },
+              "application/x-json-stream": {
+                "schema": {}
+              },
+              "audio/x-wav": {
+                "schema": {}
+              },
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "audio/mpeg": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "audio/ogg": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "application/x-json-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "audio/x-wav": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Service error",
+            "content": {
+              "audio/mpeg": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "audio/ogg": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "application/x-json-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "audio/x-wav": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/voices": {
+      "get": {
+        "tags": [
+          "speech"
+        ],
+        "description": "Describe/query available voices",
+        "parameters": [
+          {
+            "name": "Engine",
+            "in": "query",
+            "description": "Specify which engine to use",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "standard"
+              ]
+            }
+          },
+          {
+            "name": "LanguageCode",
+            "in": "query",
+            "description": "The language identification tag (ISO 639 code for the language name-ISO 3166 country code) for filtering the list of voices returned. If you don't specify this optional parameter, all available voices are returned.  example: is-IS",
+            "required": false,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of voices matching query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Voice"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "SynthesizeSpeechRequest": {
+        "required": [
+          "OutputFormat",
+          "Text",
+          "VoiceId"
+        ],
+        "type": "object",
+        "properties": {
+          "Engine": {
+            "type": "string",
+            "description": "Specify which engine to use",
+            "enum": [
+              "standard"
+            ]
+          },
+          "LanguageCode": {
+            "type": "string",
+            "description": "The language identification tag (ISO 639 code for the language name-ISO 3166 country code) for specifying the synthesis language. If left empty, language detection is done by the API.",
+            "example": "is-IS"
+          },
+          "LexiconNames": {
+            "type": "array",
+            "description": "List of one or more pronunciation lexicon names you want the service to apply during synthesis. Lexicons are applied only if the language of the lexicon is the same as the language of the voice. For information about storing lexicons, see PutLexicon. UNIMPLEMENTED",
+            "example": [],
+            "items": {
+              "type": "string"
+            }
+          },
+          "OutputFormat": {
+            "type": "string",
+            "description": "The format in which the returned output will be encoded. For audio stream, this will be mp3, ogg_vorbis, or pcm. For speech marks, this will be json. ",
+            "example": "pcm",
+            "enum": [
+              "json",
+              "pcm",
+              "mp3",
+              "ogg_vorbis"
+            ]
+          },
+          "SampleRate": {
+            "type": "string",
+            "description": "The audio frequency specified in Hz. Output formats `mp3` and\n`ogg_vorbis` support all sample rates.\n",
+            "example": "22050",
+            "enum": [
+              "8000",
+              "16000",
+              "22050"
+            ]
+          },
+          "SpeechMarkTypes": {
+            "type": "array",
+            "description": "The type of speech marks returned for the input text.\n\nOnly word level speech marks are supported, which contain the start\ntime of each word and their start and end byte offsets in the input\ntext. E.g.\n\n    {\n     \"Engine\": \"standard\",\n     \"LanguageCode\": \"is-IS\",\n     \"OutputFormat\": \"json\",\n     \"SpeechMarkTypes\": [\"word\"],\n     \"Text\": \" Góðan, dag. Hvað heitir þú? Kvöld-Úlfur.\",\n     \"VoiceId\": \"Alfur\"\n    }\n\nmight return\n\n    {\"time\": 54, \"type\": \"word\", \"start\": 1, \"end\": 9, \"value\": \"Góðan,\"}\n    {\"time\": 44, \"type\": \"word\", \"start\": 10, \"end\": 14, \"value\": \"dag.\"}\n    {\"time\": 26, \"type\": \"word\", \"start\": 15, \"end\": 20, \"value\": \"Hvað\"}\n    {\"time\": 33, \"type\": \"word\", \"start\": 21, \"end\": 27, \"value\": \"heitir\"}\n    {\"time\": 19, \"type\": \"word\", \"start\": 28, \"end\": 33, \"value\": \"þú?\"}\n    {\"time\": 88, \"type\": \"word\", \"start\": 34, \"end\": 48, \"value\": \"Kvöld-Úlfur.\"}\n\n",
+            "example": [
+              "word"
+            ],
+            "items": {
+              "type": "string",
+              "enum": [
+                "word"
+              ]
+            }
+          },
+          "Text": {
+            "maxLength": 3000,
+            "minLength": 1,
+            "type": "string",
+            "description": "Input text to synthesize.",
+            "example": "Halló! Ég er gervimaður."
+          },
+          "TextType": {
+            "type": "string",
+            "description": "Specifies whether the input text is plain text or SSML. The default value is plain text. \n\nCurrently the SSML support is restricted to just `<phoneme>` tags, e.g:<br>`<speak>Ég er <phoneme alphabet='x-sampa' ph='...'>gervimaður</phoneme></speak>`\n\nCurrently only plain text requests are normalized before synthesis.",
+            "enum": [
+              "text",
+              "ssml"
+            ]
+          },
+          "VoiceId": {
+            "type": "string",
+            "description": "Voice ID to use for the synthesis",
+            "example": "Alfur"
+          }
+        }
+      },
+      "Voice": {
+        "type": "object",
+        "properties": {
+          "Gender": {
+            "type": "string",
+            "enum": [
+              "Male",
+              "Female"
+            ]
+          },
+          "LanguageCode": {
+            "type": "string",
+            "example": "is-IS"
+          },
+          "LanguageName": {
+            "type": "string",
+            "example": "Íslenska"
+          },
+          "SupportedEngines": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "standard"
+              ]
+            }
+          },
+          "VoiceId": {
+            "type": "string",
+            "example": "Alfur"
+          }
+        }
+      }
+    }
+  }
+}
