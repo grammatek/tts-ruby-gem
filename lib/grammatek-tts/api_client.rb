@@ -109,7 +109,8 @@ module Grammatek
           :ssl_verifyhost => _verify_ssl_host,
           :sslcert => @config.cert_file,
           :sslkey => @config.key_file,
-          :verbose => @config.debugging
+          :verbose => @config.debugging,
+          :http_version => :httpv2_0
         }
 
         # set custom cert, if provided

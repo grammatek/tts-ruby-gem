@@ -12,6 +12,6 @@ OpenAPI Generator version: 5.4.0
 
 module Grammatek
   module TTS
-    VERSION = '0.1'
+    VERSION = '0.4'
   end
 end
