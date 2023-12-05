@@ -14,14 +14,18 @@ require 'date'
 require 'time'
 
 module GTTS
-  class Error
-    # Error message
-    attr_accessor :message
+  class TokenInfoResponse
+    # Expiration time as a Unix timestamp.
+    attr_accessor :unix_timestamp
+
+    # Expiration time in a human-readable format.
+    attr_accessor :human_readable
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
-        :'message' => :'message'
+        :'unix_timestamp' => :'unix_timestamp',
+        :'human_readable' => :'human_readable'
       }
     end
 
@@ -33,7 +37,8 @@ module GTTS
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'message' => :'String'
+        :'unix_timestamp' => :'Integer',
+        :'human_readable' => :'String'
       }
     end
 
@@ -47,21 +52,23 @@ module GTTS
     # @param [Hash] attributes Model attributes in the form of hash
     def initialize(attributes = {})
       if (!attributes.is_a?(Hash))
-        fail ArgumentError, "The input argument (attributes) must be a hash in `GTTS::Error` initialize method"
+        fail ArgumentError, "The input argument (attributes) must be a hash in `GTTS::TokenInfoResponse` initialize method"
       end
 
       # check to see if the attribute exists and convert string to symbol for hash key
       attributes = attributes.each_with_object({}) { |(k, v), h|
         if (!self.class.attribute_map.key?(k.to_sym))
-          fail ArgumentError, "`#{k}` is not a valid attribute in `GTTS::Error`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
+          fail ArgumentError, "`#{k}` is not a valid attribute in `GTTS::TokenInfoResponse`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
         end
         h[k.to_sym] = v
       }
 
-      if attributes.key?(:'message')
-        self.message = attributes[:'message']
-      else
-        self.message = nil
+      if attributes.key?(:'unix_timestamp')
+        self.unix_timestamp = attributes[:'unix_timestamp']
+      end
+
+      if attributes.key?(:'human_readable')
+        self.human_readable = attributes[:'human_readable']
       end
     end
 
@@ -70,10 +77,6 @@ module GTTS
     def list_invalid_properties
       warn '[DEPRECATED] the `list_invalid_properties` method is obsolete'
       invalid_properties = Array.new
-      if @message.nil?
-        invalid_properties.push('invalid value for "message", message cannot be nil.')
-      end
-
       invalid_properties
     end
 
@@ -81,7 +84,6 @@ module GTTS
     # @return true if the model is valid
     def valid?
       warn '[DEPRECATED] the `valid?` method is obsolete'
-      return false if @message.nil?
       true
     end
 
@@ -90,7 +92,8 @@ module GTTS
     def ==(o)
       return true if self.equal?(o)
       self.class == o.class &&
-          message == o.message
+          unix_timestamp == o.unix_timestamp &&
+          human_readable == o.human_readable
     end
 
     # @see the `==` method
@@ -102,7 +105,7 @@ module GTTS
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [message].hash
+      [unix_timestamp, human_readable].hash
     end
 
     # Builds the object from hash

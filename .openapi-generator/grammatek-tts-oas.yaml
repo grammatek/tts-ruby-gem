@@ -1,331 +1,408 @@
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "TTS API",
-    "description": "This API gives access to Grammatek ehf text to speech services.",
-    "version": "v0.1"
-  },
-  "servers": [
-    {
-      "url": "https://{environment}.grammatek.com/tts/v0",
-      "variables": {
-        "environment": {
-          "default": "api",
-          "enum": [
-            "api",
-            "api-test"
-          ]
-        }
-      }
-    }
-  ],
-  "tags": [
-    {
-      "name": "Speech",
-      "description": "Synthesize speech from text"
-    }
-  ],
-  "paths": {
-    "/speech": {
-      "post": {
-        "tags": [
-          "speech"
-        ],
-        "description": "TTS - Synthesize speech from text",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SynthesizeSpeechRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Audio or speech marks content",
-            "content": {
-              "audio/mpeg": {
-                "schema": {}
-              },
-              "audio/ogg": {
-                "schema": {}
-              },
-              "application/x-json-stream": {
-                "schema": {}
-              },
-              "audio/x-wav": {
-                "schema": {}
-              },
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "audio/mpeg": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
+---
+openapi: 3.0.3
+info:
+  title: TTS API
+  description: |+
+    This API gives access to Grammatek ehf advanced text to speech services. It provides endpoints to query all
+    available voices and synthesize speech from given text for a particular voice. You can synthesize speech in several
+    audio formats and different sample rates.
+    Please authenticate with your client credentials via the /auth/v1 endpoint to receive a temporary access token
+    for all API endpoints. This token is valid only for a certain time and you need to re-authenticate after it has
+    expired.
+    Please contact Grammatek via info@grammatek.com to receive your individual client credentials.
+  version: v1.0
+servers:
+  - url: "{scheme}://{server}"
+    description: Server name of API
+    variables:
+      scheme:
+        enum:
+          - 'https'
+          - 'http'
+        default: 'https'
+      server:
+        description: Server URL of the API
+        default: api2.grammatek.com
+
+tags:
+  - name: speech
+    description: Synthesize speech from input text
+
+paths:
+  /auth/v1:
+    post:
+      summary: Authenticate and receive access token
+      tags:
+        - auth
+      description: |+
+        Authenticate with `client_id` and `client_secret` to receive a temporary access token. The response is a JSON
+        object with 2 entries: `access_token` and `expires_in`.
+        The former provides the access token itself, the latter is the expiration time in seconds of the returned token
+        after which it is invalidated and can no longer be used.
+        You need to provide a valid access token as Bearer token in the Authorization header for all other API endpoints.
+        If you encounter a 401 error in one of the other endpoints, your access token has expired and you need to
+        re-authenticate.
+        You can use the endpoint /auth/v1/token-info to check the absolute expiration date/time of the returned access
+        token for e.g. caching purposes.
+      operationId: postAuth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              title: auth_request
+              required:
+                - client_id
+                - client_secret
+              properties:
+                client_id:
+                  type: string
+                  description: Client ID for authentication.
+                client_secret:
+                  type: string
+                  description: Client secret for authentication.
+      responses:
+        "200":
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                title: auth_response
+                properties:
+                  access_token:
+                    type: string
+                    description: |+
+                      Access token for authentication and API access. Use this as Bearer token in the Authorization
+                      header for all API endpoints.
+                  expires_in:
+                    type: integer
+                    format: int64
+                    description: Expiration time of the access token in [seconds]
+        "401":
+          description: Unauthorized. Invalid client_id or client_secret provided.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/v1/token-info:
+    get:
+      summary: Get token info and expiration time
+      tags:
+        - auth
+      description: |+
+        Retrieve the absolute date/expiration time of the given access token. If the given token is valid, a 200
+        response is returned with the expiration date/time of the token. If the token is invalid, a 401 response is
+        returned.
+        Providing the access token as Bearer token in the Authorization header is required.
+      operationId: getTokenInfo
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Expiration time of the access token
+          content:
+            application/json:
+              schema:
+                type: object
+                title: token_info_response
+                properties:
+                  unix_timestamp:
+                    type: integer
+                    format: int64
+                    description: Expiration time as a Unix timestamp.
+                  human_readable:
+                    type: string
+                    description: Expiration time in a human-readable format.
+        "401":
+          description: Unauthorized. Invalid access token or token has expired. Please re-authenticate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /tts/v1/speech:
+    post:
+      summary: TTS - Synthesize speech from text
+      tags:
+        - speech
+      description: |+
+        TTS - Synthesize speech from text. Please provide the following required parameters:
+        
+          - OutputFormat (mp3, ogg_vorbis, pcm, json)
+          - Text (input text to synthesize)
+          - VoiceId (voice ID to use for the synthesis)
+        
+        You can also provide the following optional parameters:
+        
+          - SampleRate (audio frequency in Hz, supported values: 8000, 16000, 22050)
+          - SpeechMarkTypes (type of speech marks to return, supported values: word)
+          - Engine (engine to use, currently only vaöue 'standard' is supported)
+          - LanguageCode (language code to use, only 'is-IS' is supported)
+          - TextType (type of input text, supported values: 'text', 'ssml')
+          - LexiconNames (list of lexicon names to use, currently this is not supported)
+        
+        If TextType 'ssml' is provided: we only support a subset of tags. Please contact us for more information.
+        
+        In case the chosen output format is json, the speech marks are returned in the response body as JSON.
+        No audio is returned in that case. Therefore, if you need the audio, you need to make a second request with the
+        same parameters but a different output format.
+        
+        Providing the access token as Bearer token in the Authorization header is required.
+      operationId: postSpeech
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SynthesizeSpeechRequest'
+      responses:
+        "200":
+          description: Audio or speech marks content
+          content:
+            audio/mpeg:
+              schema: {}
+            application/octet-stream:
+              schema: {}
+            audio/ogg:
+              schema: {}
+            application/x-json-stream:
+              schema: {}
+            audio/x-wav:
+              schema: {}
+            application/json:
+              schema: {}
+        "400":
+          description: Bad request
+          content:
+            audio/mpeg:
+              schema:
+                $ref: '#/components/schemas/Error'
+            audio/ogg:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/x-json-stream:
+              schema:
+                $ref: '#/components/schemas/Error'
+            audio/x-wav:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "401":
+          description: Unauthorized. Invalid access token or token has expired. Please re-authenticate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Service error
+          content:
+            audio/mpeg:
+              schema:
+                $ref: '#/components/schemas/Error'
+            audio/ogg:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/x-json-stream:
+              schema:
+                $ref: '#/components/schemas/Error'
+            audio/x-wav:
+              schema:
+                $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /tts/v1/voices:
+    get:
+      summary: Describe/query available voices
+      tags:
+        - speech
+      description: |+
+        Describe/query available voices.
+        Providing the access token as Bearer token in the Authorization header is required.
+      security:
+        - bearerAuth: [ ]
+      operationId: getVoices
+      parameters:
+        - name: Engine
+          in: query
+          description: Specify which engine to use
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+            enum:
+              - standard
+        - name: LanguageCode
+          in: query
+          description: 'The language identification tag (ISO 639 code for the language name-ISO 3166 country code) for filtering the list of voices returned. If you don''t specify this optional parameter, all available voices are returned.  example: is-IS'
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of voices matching query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Voice'
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "401":
+          description: Unauthorized. Invalid access token or token has expired. Please re-authenticate.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Service error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Error message
+    SynthesizeSpeechRequest:
+      required:
+        - OutputFormat
+        - Text
+        - VoiceId
+      type: object
+      properties:
+        Engine:
+          type: string
+          description: Specify which engine to use
+          enum:
+            - standard
+        LanguageCode:
+          type: string
+          description: |+
+            The language identification tag (ISO 639 code for the language name-ISO 3166 country code) for specifying
+            the synthesis language. If left empty, language detection is done by the API.
+          example: is-IS
+        LexiconNames:
+          type: array
+          description: |+
+            List of one or more pronunciation lexicon names you want the service to apply during synthesis. Lexicons are
+            applied only if the language of the lexicon is the same as the language of the voice. For information about
+            storing lexicons, see PutLexicon. UNIMPLEMENTED
+          example: []
+          items:
+            type: string
+        OutputFormat:
+          type: string
+          description: |+
+            The format in which the returned output will be encoded. For audio stream, this will be mp3, ogg_vorbis,
+            or pcm. For speech marks, this will be json.
+          example: pcm
+          enum:
+            - json
+            - pcm
+            - mp3
+            - ogg_vorbis
+        SampleRate:
+          type: string
+          description: |+
+            The audio frequency specified in Hz. Output formats `mp3` and `ogg_vorbis` support all sample rates.
+          example: "22050"
+          enum:
+            - "8000"
+            - "16000"
+            - "22050"
+        SpeechMarkTypes:
+          type: array
+          description: |+
+            The type of speech marks returned for the input text.
+
+            Only word level speech marks are supported, which contain the start
+            time of each word and their start and end byte offsets in the input
+            text. E.g.
+
+                {
+                 "Engine": "standard",
+                 "LanguageCode": "is-IS",
+                 "OutputFormat": "json",
+                 "SpeechMarkTypes": ["word"],
+                 "Text": " Góðan, dag. Hvað heitir þú? Kvöld-Úlfur.",
+                 "VoiceId": "Alfur"
                 }
-              },
-              "audio/ogg": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              },
-              "application/x-json-stream": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              },
-              "audio/x-wav": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Service error",
-            "content": {
-              "audio/mpeg": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              },
-              "audio/ogg": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              },
-              "application/x-json-stream": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              },
-              "audio/x-wav": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/voices": {
-      "get": {
-        "tags": [
-          "speech"
-        ],
-        "description": "Describe/query available voices",
-        "parameters": [
-          {
-            "name": "Engine",
-            "in": "query",
-            "description": "Specify which engine to use",
-            "required": false,
-            "style": "form",
-            "explode": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "standard"
-              ]
-            }
-          },
-          {
-            "name": "LanguageCode",
-            "in": "query",
-            "description": "The language identification tag (ISO 639 code for the language name-ISO 3166 country code) for filtering the list of voices returned. If you don't specify this optional parameter, all available voices are returned.  example: is-IS",
-            "required": false,
-            "style": "form",
-            "explode": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of voices matching query",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Voice"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Service error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Error": {
-        "required": [
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string"
-          }
-        }
-      },
-      "SynthesizeSpeechRequest": {
-        "required": [
-          "OutputFormat",
-          "Text",
-          "VoiceId"
-        ],
-        "type": "object",
-        "properties": {
-          "Engine": {
-            "type": "string",
-            "description": "Specify which engine to use",
-            "enum": [
-              "standard"
-            ]
-          },
-          "LanguageCode": {
-            "type": "string",
-            "description": "The language identification tag (ISO 639 code for the language name-ISO 3166 country code) for specifying the synthesis language. If left empty, language detection is done by the API.",
-            "example": "is-IS"
-          },
-          "LexiconNames": {
-            "type": "array",
-            "description": "List of one or more pronunciation lexicon names you want the service to apply during synthesis. Lexicons are applied only if the language of the lexicon is the same as the language of the voice. For information about storing lexicons, see PutLexicon. UNIMPLEMENTED",
-            "example": [],
-            "items": {
-              "type": "string"
-            }
-          },
-          "OutputFormat": {
-            "type": "string",
-            "description": "The format in which the returned output will be encoded. For audio stream, this will be mp3, ogg_vorbis, or pcm. For speech marks, this will be json. ",
-            "example": "pcm",
-            "enum": [
-              "json",
-              "pcm",
-              "mp3",
-              "ogg_vorbis"
-            ]
-          },
-          "SampleRate": {
-            "type": "string",
-            "description": "The audio frequency specified in Hz. Output formats `mp3` and\n`ogg_vorbis` support all sample rates.\n",
-            "example": "22050",
-            "enum": [
-              "8000",
-              "16000",
-              "22050"
-            ]
-          },
-          "SpeechMarkTypes": {
-            "type": "array",
-            "description": "The type of speech marks returned for the input text.\n\nOnly word level speech marks are supported, which contain the start\ntime of each word and their start and end byte offsets in the input\ntext. E.g.\n\n    {\n     \"Engine\": \"standard\",\n     \"LanguageCode\": \"is-IS\",\n     \"OutputFormat\": \"json\",\n     \"SpeechMarkTypes\": [\"word\"],\n     \"Text\": \" Góðan, dag. Hvað heitir þú? Kvöld-Úlfur.\",\n     \"VoiceId\": \"Alfur\"\n    }\n\nmight return\n\n    {\"time\": 54, \"type\": \"word\", \"start\": 1, \"end\": 9, \"value\": \"Góðan,\"}\n    {\"time\": 44, \"type\": \"word\", \"start\": 10, \"end\": 14, \"value\": \"dag.\"}\n    {\"time\": 26, \"type\": \"word\", \"start\": 15, \"end\": 20, \"value\": \"Hvað\"}\n    {\"time\": 33, \"type\": \"word\", \"start\": 21, \"end\": 27, \"value\": \"heitir\"}\n    {\"time\": 19, \"type\": \"word\", \"start\": 28, \"end\": 33, \"value\": \"þú?\"}\n    {\"time\": 88, \"type\": \"word\", \"start\": 34, \"end\": 48, \"value\": \"Kvöld-Úlfur.\"}\n\n",
-            "example": [
-              "word"
-            ],
-            "items": {
-              "type": "string",
-              "enum": [
-                "word"
-              ]
-            }
-          },
-          "Text": {
-            "maxLength": 3000,
-            "minLength": 1,
-            "type": "string",
-            "description": "Input text to synthesize.",
-            "example": "Halló! Ég er gervimaður."
-          },
-          "TextType": {
-            "type": "string",
-            "description": "Specifies whether the input text is plain text or SSML. The default value is plain text. \n\nCurrently the SSML support is restricted to just `<phoneme>` tags, e.g:<br>`<speak>Ég er <phoneme alphabet='x-sampa' ph='...'>gervimaður</phoneme></speak>`\n\nCurrently only plain text requests are normalized before synthesis.",
-            "enum": [
-              "text",
-              "ssml"
-            ]
-          },
-          "VoiceId": {
-            "type": "string",
-            "description": "Voice ID to use for the synthesis",
-            "example": "Alfur"
-          }
-        }
-      },
-      "Voice": {
-        "type": "object",
-        "properties": {
-          "Gender": {
-            "type": "string",
-            "enum": [
-              "Male",
-              "Female"
-            ]
-          },
-          "LanguageCode": {
-            "type": "string",
-            "example": "is-IS"
-          },
-          "LanguageName": {
-            "type": "string",
-            "example": "Íslenska"
-          },
-          "SupportedEngines": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "standard"
-              ]
-            }
-          },
-          "VoiceId": {
-            "type": "string",
-            "example": "Alfur"
-          }
-        }
-      }
-    }
-  }
-}
+
+            might return
+
+                {"time": 54, "type": "word", "start": 1, "end": 9, "value": "Góðan,"}
+                {"time": 44, "type": "word", "start": 10, "end": 14, "value": "dag."}
+                {"time": 26, "type": "word", "start": 15, "end": 20, "value": "Hvað"}
+                {"time": 33, "type": "word", "start": 21, "end": 27, "value": "heitir"}
+                {"time": 19, "type": "word", "start": 28, "end": 33, "value": "þú?"}
+                {"time": 88, "type": "word", "start": 34, "end": 48, "value": "Kvöld-Úlfur."}
+          example:
+            - word
+          items:
+            type: string
+            enum:
+              - word
+        Text:
+          maxLength: 3000
+          minLength: 1
+          type: string
+          description: |+
+            Input text to synthesize.
+          example: Halló, Rómverskur riddari réðst inn í Rómaborg, rændi og ruplaði rabbabara og rófum.
+        TextType:
+          type: string
+          description: "Specifies whether the input text is plain text or SSML. The default value is plain text. \n\nCurrently the SSML support is restricted to just `<phoneme>` tags, e.g:<br>`<speak>Ég er <phoneme alphabet='x-sampa' ph='...'>gervimaður</phoneme></speak>`\n\nCurrently only plain text requests are normalized before synthesis."
+          enum:
+            - text
+            - ssml
+        VoiceId:
+          type: string
+          description: Voice ID to use for the synthesis
+          example: Alfur
+    Voice:
+      type: object
+      properties:
+        Gender:
+          type: string
+          enum:
+            - Male
+            - Female
+        LanguageCode:
+          type: string
+          example: is-IS
+        LanguageName:
+          type: string
+          example: Íslenska
+        SupportedEngines:
+          type: array
+          items:
+            type: string
+            enum:
+              - standard
+        VoiceId:
+          type: string
+          example: Alfur
