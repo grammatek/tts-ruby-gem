@@ -1,4 +1,4 @@
-# Grammatek::TTS::Voice
+# GTTS::Voice
 
 ## Properties
 
@@ -15,7 +15,7 @@
 ```ruby
 require 'grammatek-tts'
 
-instance = Grammatek::TTS::Voice.new(
+instance = GTTS::Voice.new(
   gender: null,
   language_code: is-IS,
   language_name: Íslenska,

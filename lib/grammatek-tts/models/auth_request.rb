@@ -14,14 +14,18 @@ require 'date'
 require 'time'
 
 module GTTS
-  class Error
-    # Error message
-    attr_accessor :message
+  class AuthRequest
+    # Client ID for authentication.
+    attr_accessor :client_id
+
+    # Client secret for authentication.
+    attr_accessor :client_secret
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
-        :'message' => :'message'
+        :'client_id' => :'client_id',
+        :'client_secret' => :'client_secret'
       }
     end
 
@@ -33,7 +37,8 @@ module GTTS
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'message' => :'String'
+        :'client_id' => :'String',
+        :'client_secret' => :'String'
       }
     end
 
@@ -47,21 +52,27 @@ module GTTS
     # @param [Hash] attributes Model attributes in the form of hash
     def initialize(attributes = {})
       if (!attributes.is_a?(Hash))
-        fail ArgumentError, "The input argument (attributes) must be a hash in `GTTS::Error` initialize method"
+        fail ArgumentError, "The input argument (attributes) must be a hash in `GTTS::AuthRequest` initialize method"
       end
 
       # check to see if the attribute exists and convert string to symbol for hash key
       attributes = attributes.each_with_object({}) { |(k, v), h|
         if (!self.class.attribute_map.key?(k.to_sym))
-          fail ArgumentError, "`#{k}` is not a valid attribute in `GTTS::Error`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
+          fail ArgumentError, "`#{k}` is not a valid attribute in `GTTS::AuthRequest`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
         end
         h[k.to_sym] = v
       }
 
-      if attributes.key?(:'message')
-        self.message = attributes[:'message']
+      if attributes.key?(:'client_id')
+        self.client_id = attributes[:'client_id']
       else
-        self.message = nil
+        self.client_id = nil
+      end
+
+      if attributes.key?(:'client_secret')
+        self.client_secret = attributes[:'client_secret']
+      else
+        self.client_secret = nil
       end
     end
 
@@ -70,8 +81,12 @@ module GTTS
     def list_invalid_properties
       warn '[DEPRECATED] the `list_invalid_properties` method is obsolete'
       invalid_properties = Array.new
-      if @message.nil?
-        invalid_properties.push('invalid value for "message", message cannot be nil.')
+      if @client_id.nil?
+        invalid_properties.push('invalid value for "client_id", client_id cannot be nil.')
+      end
+
+      if @client_secret.nil?
+        invalid_properties.push('invalid value for "client_secret", client_secret cannot be nil.')
       end
 
       invalid_properties
@@ -81,7 +96,8 @@ module GTTS
     # @return true if the model is valid
     def valid?
       warn '[DEPRECATED] the `valid?` method is obsolete'
-      return false if @message.nil?
+      return false if @client_id.nil?
+      return false if @client_secret.nil?
       true
     end
 
@@ -90,7 +106,8 @@ module GTTS
     def ==(o)
       return true if self.equal?(o)
       self.class == o.class &&
-          message == o.message
+          client_id == o.client_id &&
+          client_secret == o.client_secret
     end
 
     # @see the `==` method
@@ -102,7 +119,7 @@ module GTTS
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [message].hash
+      [client_id, client_secret].hash
     end
 
     # Builds the object from hash

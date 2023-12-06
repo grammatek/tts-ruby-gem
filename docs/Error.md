@@ -1,17 +1,17 @@
-# Grammatek::TTS::Error
+# GTTS::Error
 
 ## Properties
 
 | Name | Type | Description | Notes |
 | ---- | ---- | ----------- | ----- |
-| **message** | **String** |  |  |
+| **message** | **String** | Error message |  |
 
 ## Example
 
 ```ruby
 require 'grammatek-tts'
 
-instance = Grammatek::TTS::Error.new(
+instance = GTTS::Error.new(
   message: null
 )
 ```

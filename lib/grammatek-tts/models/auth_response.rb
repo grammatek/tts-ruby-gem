@@ -14,14 +14,18 @@ require 'date'
 require 'time'
 
 module GTTS
-  class Error
-    # Error message
-    attr_accessor :message
+  class AuthResponse
+    # Access token for authentication and API access. Use this as Bearer token in the Authorization header for all API endpoints. 
+    attr_accessor :access_token
+
+    # Expiration time of the access token in [seconds]
+    attr_accessor :expires_in
 
     # Attribute mapping from ruby-style variable name to JSON key.
     def self.attribute_map
       {
-        :'message' => :'message'
+        :'access_token' => :'access_token',
+        :'expires_in' => :'expires_in'
       }
     end
 
@@ -33,7 +37,8 @@ module GTTS
     # Attribute type mapping.
     def self.openapi_types
       {
-        :'message' => :'String'
+        :'access_token' => :'String',
+        :'expires_in' => :'Integer'
       }
     end
 
@@ -47,21 +52,23 @@ module GTTS
     # @param [Hash] attributes Model attributes in the form of hash
     def initialize(attributes = {})
       if (!attributes.is_a?(Hash))
-        fail ArgumentError, "The input argument (attributes) must be a hash in `GTTS::Error` initialize method"
+        fail ArgumentError, "The input argument (attributes) must be a hash in `GTTS::AuthResponse` initialize method"
       end
 
       # check to see if the attribute exists and convert string to symbol for hash key
       attributes = attributes.each_with_object({}) { |(k, v), h|
         if (!self.class.attribute_map.key?(k.to_sym))
-          fail ArgumentError, "`#{k}` is not a valid attribute in `GTTS::Error`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
+          fail ArgumentError, "`#{k}` is not a valid attribute in `GTTS::AuthResponse`. Please check the name to make sure it's valid. List of attributes: " + self.class.attribute_map.keys.inspect
         end
         h[k.to_sym] = v
       }
 
-      if attributes.key?(:'message')
-        self.message = attributes[:'message']
-      else
-        self.message = nil
+      if attributes.key?(:'access_token')
+        self.access_token = attributes[:'access_token']
+      end
+
+      if attributes.key?(:'expires_in')
+        self.expires_in = attributes[:'expires_in']
       end
     end
 
@@ -70,10 +77,6 @@ module GTTS
     def list_invalid_properties
       warn '[DEPRECATED] the `list_invalid_properties` method is obsolete'
       invalid_properties = Array.new
-      if @message.nil?
-        invalid_properties.push('invalid value for "message", message cannot be nil.')
-      end
-
       invalid_properties
     end
 
@@ -81,7 +84,6 @@ module GTTS
     # @return true if the model is valid
     def valid?
       warn '[DEPRECATED] the `valid?` method is obsolete'
-      return false if @message.nil?
       true
     end
 
@@ -90,7 +92,8 @@ module GTTS
     def ==(o)
       return true if self.equal?(o)
       self.class == o.class &&
-          message == o.message
+          access_token == o.access_token &&
+          expires_in == o.expires_in
     end
 
     # @see the `==` method
@@ -102,7 +105,7 @@ module GTTS
     # Calculates hash code according to all attributes.
     # @return [Integer] Hash code
     def hash
-      [message].hash
+      [access_token, expires_in].hash
     end
 
     # Builds the object from hash
